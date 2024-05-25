@@ -1,4 +1,4 @@
-from typing import Dict, TypedDict
+from typing import Dict, TypedDict, Any
 from .FuzzyMember import FuzzyMember, MemberReward
 
 
@@ -8,7 +8,7 @@ class Membership(TypedDict):
 
 
 class FuzzyRule:
-    antecedent: Dict[Membership, ...]
+    antecedent: Dict[Membership, Any]
     consequent: Membership
 
     def __init__(self, antecedent, consequent):

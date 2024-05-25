@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify, render_template
 from .rules import init_rules
 from libs.fuzzy import Fuzzy
 
@@ -7,7 +7,7 @@ main = Blueprint('main', __name__)
 
 @main.route('/', methods=['GET'])
 def index():
-    return 'main index'
+    return render_template('index.html')
 
 
 @main.route('/calculate', methods=['POST'])
