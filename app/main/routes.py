@@ -1,6 +1,9 @@
 from flask import Blueprint, request, jsonify, render_template
 from .rules import init_rules
 from libs.fuzzy import Fuzzy
+from libs import topsis_method
+from .utils import *
+import numpy as np
 
 main = Blueprint('main', __name__)
 
@@ -15,11 +18,27 @@ def calculate():
     alternatives = request.get_json().get('alternative')
     rules = init_rules()
 
-    economy_condition = []
-
     for alternative in alternatives:
-        fuzzy = Fuzzy(rules=rules, data={
-            'gaji': alternative.get('gaji') / 1000000,
-            'pengeluaran': alternative.get('pengeluaran') / 1000000
-        })
-        economy_condition.append(fuzzy.exec())
+        scaled_data = {
+            'gaji': alternative.pop('gaji') / 1000000,
+            'pengeluaran': alternative.pop('pengeluaran') / 1000000
+        }
+
+        fuzzy = Fuzzy(rules=rules, data=scaled_data)
+        alternative["kondisi_ekonomi"] = fuzzy.exec()
+
+    mapped_alternatives = map_alternative_after_fuzzied(alternatives=alternatives)
+
+    w = np.array([0.25, 0.22, 0.15, 0.15, 0.135, 0.095])
+
+    ct = np.array([-1, 1, 1, -1, 1, 1])
+
+    topsis_result, ranks_result = topsis_method(dataset=mapped_alternatives, weights=w, criterion_type=ct)
+
+    data = map_topsis_rank(alternatives, topsis_result, ranks_result)
+    
+    return jsonify({
+        "status_code": 200,
+        "message": 'Kalkulasi Ranking Penerima Bansos Berhasil',
+        "data": data
+    }), 200
