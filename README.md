@@ -21,4 +21,4 @@
     ```commandline
     pip install -r requirement.txt
     ```
-4. Run the app
+4. Let's code

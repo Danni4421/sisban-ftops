@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Homepage</title>
+</head>
+
+<style>
+    body {
+        padding: 0 30px;
+    }
+
+    .code {
+        padding: 16px 24px;
+        min-width: 40vw;
+        font-size: 1.05rem;
+        background: #eaeaea;
+    }
+
+    .mb {
+        margin-bottom: 20px;
+    }
+
+    @media(max-width: 576px) {
+        min-width: 100vw;
+    }
+</style>
+
+<body>
+    <h1>Dashboard Sistem Pendukung Keputusan SISBAN</h1>
+
+    <div class="container">
+        <div class="code mb">
+            <code>POST /calculate</code>
+        </div>
+        <div class="description">
+            Endpoint tersebut digunakan untuk menghitung nilai alternative dengan menggunakan method Fuzzy dan juga Topsis
+            <br><br>
+            <span>Untuk dapat menggunakan endpoint tersebut terdapat beberapa hal yang perlu Anda siapkan</span>
+            <ul>
+                <li>
+                    Kriteria
+                    <ul>
+                        <li>
+                            <b>C1:</b> Kondisi Ekonomi (<i>cost</i>)
+                            <ul>
+                                <li><b>Sub 1:</b> Gaji</li>
+                                <li><b>Sub 2:</b> Pengeluaran</li>
+                            </ul>
+                        </li>
+                        <li><b>C2:</b> Tanggungan (<i>benefit</i>)</li>
+                        <li><b>C3:</b> Hutang (<i>benefit</i>)</li>
+                        <li><b>C4:</b> Aset (<i>cost</i>)</li>
+                        <li><b>C5:</b> Biaya Listrk (<i>benefit</i>)</li>
+                        <li><b>C6:</b> Biaya Air (<i>benefit</i>)</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+</body>
+</html>
