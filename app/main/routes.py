@@ -35,10 +35,10 @@ def calculate():
 
     topsis_result, ranks_result = topsis_method(dataset=mapped_alternatives, weights=w, criterion_type=ct)
 
-    data = map_topsis_rank(alternatives, topsis_result, ranks_result)
-    
+    data = map_topsis_rank(alternatives=alternatives, topsis_results=topsis_result, topsis_ranks=ranks_result)
+
     return jsonify({
-        "status_code": 200,
+        "status": "success",
         "message": 'Kalkulasi Ranking Penerima Bansos Berhasil',
-        "data": data
+        "data": convert_to_serializable(list(data))
     }), 200
