@@ -40,6 +40,8 @@ class Topsis:
 
         for j in range(self.total_criteria):
             sq = np.sqrt(sum(self.matrix[:, j] ** 2))
+            sq = 1 if sq == 0 else sq
+
             for i in range(self.total_alternative):
                 raw[i, j] = self.matrix[i, j] / sq
 
@@ -73,6 +75,6 @@ class Topsis:
         return distance_worst, distance_best
 
     def performance_score(self, distance_best, distance_worst):
-        score = []
-        score = distance_worst / (distance_best + distance_worst)
-        return score
+        print(distance_best, distance_worst)
+        return distance_worst / (distance_best + distance_worst)
+

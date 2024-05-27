@@ -15,7 +15,7 @@ def index():
 
 @main.route('/calculate', methods=['POST'])
 def calculate():
-    alternatives = request.get_json().get('alternative')
+    alternatives = request.get_json()
     rules = init_rules()
 
     for alternative in alternatives:
