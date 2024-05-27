@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template
 from .rules import init_rules
 from libs.fuzzy import Fuzzy
-from libs import topsis_method
+from libs import Topsis
 from .utils import *
 import numpy as np
 
@@ -33,12 +33,13 @@ def calculate():
 
     ct = np.array([-1, 1, 1, -1, 1, 1])
 
-    topsis_result, ranks_result = topsis_method(dataset=mapped_alternatives, weights=w, criterion_type=ct)
+    tp = Topsis(dataset=mapped_alternatives, weight=w, criterion_type=ct)
+    topsis_result, ranks_result = tp.exec()
 
-    data = map_topsis_rank(alternatives=alternatives, topsis_results=topsis_result, topsis_ranks=ranks_result)
-
+    data = map_topsis_rank(alternatives, topsis_result, ranks_result)
+    
     return jsonify({
-        "status": "success",
+        "status_code": 200,
         "message": 'Kalkulasi Ranking Penerima Bansos Berhasil',
-        "data": convert_to_serializable(list(data))
+        "data": convert_to_serializable(data)
     }), 200
