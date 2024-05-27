@@ -1,2 +1,2 @@
 from .fuzzy import Fuzzy
-from .topsis import *
+from .topsis.Topsis import Topsis
