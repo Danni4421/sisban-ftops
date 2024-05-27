@@ -40,6 +40,8 @@ class Topsis:
 
         for j in range(self.total_criteria):
             sq = np.sqrt(sum(self.matrix[:, j] ** 2))
+            sq = 1 if sq == 0 else sq
+
             for i in range(self.total_alternative):
                 raw[i, j] = self.matrix[i, j] / sq
 
