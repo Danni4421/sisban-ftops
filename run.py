@@ -3,7 +3,6 @@ from app import create_app
 # Creating main app
 app = create_app()
 
-
 # Handling error for not found routes
 @app.errorhandler(404)
 def service_not_found(e):
