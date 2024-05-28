@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify, render_template
 from .rules import init_rules
 from libs.fuzzy import Fuzzy
 from libs import Topsis
+from ..database import db
+from ..models import Fuzzy as FuzzyModel
 from .utils import *
 import numpy as np
 
@@ -15,17 +17,43 @@ def index():
 
 @main.route('/calculate', methods=['POST'])
 def calculate():
-    alternatives = request.get_json().get('alternative')
+    alternatives = request.get_json()
     rules = init_rules()
 
     for alternative in alternatives:
         scaled_data = {
-            'gaji': alternative.pop('gaji') / 1000000,
+            'penghasilan': alternative.pop('penghasilan') / 1000000,
             'pengeluaran': alternative.pop('pengeluaran') / 1000000
         }
 
         fuzzy = Fuzzy(rules=rules, data=scaled_data)
-        alternative["kondisi_ekonomi"] = fuzzy.exec()
+        (result, steps) = fuzzy.exec()
+        alternative["kondisi_ekonomi"] = result
+        
+        for index, step in enumerate(steps):
+            alternative_name = alternative.get('alternatif')
+
+            fuzzy_entry = FuzzyModel.query.filter_by(alternative=alternative_name, rule_index=index).first()
+
+            if fuzzy_entry is not None:
+                fuzzy_entry.alpha_v1 = step.get('alpha_s')[0]
+                fuzzy_entry.alpha_v2 = step.get('alpha_s')[1]
+                fuzzy_entry.alpha = step.get('alpha_pred')
+                fuzzy_entry.z_result = step.get('z_pred')
+                fuzzy_entry.a_pred_multiply_z_pred = step.get('a_pred_multiply_z_pred')
+            else:
+                fuzzy_model = FuzzyModel(
+                    alternative=alternative_name,
+                    rule_index=index,
+                    alpha_v1=step.get('alpha_s')[0],
+                    alpha_v2=step.get('alpha_s')[1],
+                    alpha=step.get('alpha_pred'),
+                    z_result=step.get('z_pred'),
+                    a_pred_multiply_z_pred=step.get('a_pred_multiply_z_pred')
+                )
+                db.session.add(fuzzy_model)
+            
+        db.session.commit()
 
     mapped_alternatives = map_alternative_after_fuzzied(alternatives=alternatives)
 
@@ -43,3 +71,23 @@ def calculate():
         "message": 'Kalkulasi Ranking Penerima Bansos Berhasil',
         "data": convert_to_serializable(data)
     }), 200
+
+
+@main.route('/fuzzy/<alternative>', methods=['GET'])
+def get_fuzzy_calculation(alternative):
+    fuzzy_calculations = FuzzyModel.query.filter_by(alternative=alternative).all()
+
+    if not fuzzy_calculations:
+        return jsonify({
+            "status_code": 200,
+            "message": 'Gagal mendapatkan hasil perhitungan fuzzy, Kalkulasi alternatif tidak ditemukan',
+            "data": None
+        })
+
+    data = [fuzzy.to_dict() for fuzzy in fuzzy_calculations]
+
+    return jsonify({
+        "status_code": 200,
+        "message": 'Berhasil mendapatkan hasil kalkulasi fuzzy',
+        "data": data
+    })

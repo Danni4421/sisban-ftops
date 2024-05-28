@@ -4,18 +4,22 @@ from typing import Tuple
 
 class Fuzzy:
     rules: Tuple[FuzzyRule, ...]
+    total_alpha_pred: int
+    total_a_pred_multiply_z_pred: int
 
     def __init__(self, rules, data):
         self.rules = rules
         self.data = data
+        self.total_alpha_pred = 0
+        self.total_a_pred_multiply_z_pred = 0
 
     def exec(self):
-        result = []
-        alpha_s = []
+        res_data = []
 
         for rule in self.rules:
-            alpha_predicate_multiply_z, alpha = rule.calculate_reward(data=self.data)
-            result.append(alpha_predicate_multiply_z)
-            alpha_s.append(alpha)
+            res = rule.calculate_reward(data=self.data)
+            res_data.append(res)
+            self.total_alpha_pred += res.get('alpha_pred')
+            self.total_a_pred_multiply_z_pred += res.get('a_pred_multiply_z_pred')
 
-        return sum(result) / sum(alpha_s)
+        return (self.total_a_pred_multiply_z_pred / self.total_alpha_pred, res_data)

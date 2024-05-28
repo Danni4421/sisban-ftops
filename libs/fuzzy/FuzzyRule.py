@@ -24,5 +24,13 @@ class FuzzyRule:
             alpha = antecedent.get('member').fuzzify(x=data.get(data_keys[idx]))
             alpha_s.append(alpha)
 
-        min_value = min(alpha_s)
-        return self.consequent.get('member').get_reward(alpha=min_value) * min_value, min_value
+        alpha = min(alpha_s)
+        z_pred = self.consequent.get('member').get_reward(alpha)
+        a_pred_multiply_z_pred = z_pred * alpha
+        
+        return {
+            'alpha_s': alpha_s,
+            'alpha_pred': alpha,
+            'z_pred': z_pred,
+            'a_pred_multiply_z_pred': a_pred_multiply_z_pred
+        }

@@ -1,28 +1,54 @@
+from typing import Any
 import numpy as np
 
 
 class Topsis:
-    def __init__(self, dataset, weight, criterion_type):
+    dataset: list[list[int]]
+    weight: list[float]
+    criterion_type: list[int]
+    total_alternative: int
+    total_criteria: int
+    matrix: np.ndarray[Any, np.dtype] = []
+    score: list
+
+    def __init__(self, dataset, weight, criterion_type) -> None:
         self.dataset = dataset
         self.weight = weight
         self.criterion_type = criterion_type
         self.total_alternative = len(dataset)
         self.total_criteria = len(dataset[0])
-        self.matrix = []
 
-    def exec(self):
+    def exec(self) -> (list, list):
+        # Initialize the matrix that will be used in this method
         self.matrix = self.float_dataset()
-        normalize_matrix = self.normalize()
-        weighted_matrix = self.weight_product(normalize_matrix)
-        ideal_worst, ideal_best = self.calc_ideal_best_worst(matrix=weighted_matrix)
-        distance_worst, distance_best = self.euclidean_distance(weighted_matrix, ideal_worst, ideal_best)
-        score = self.performance_score(distance_best, distance_worst)
-        ranks = np.argsort(np.argsort(-score)) + 1
 
-        return score, ranks
+        # Start to normalize the dataset and store to the matrix
+        self.normalize()
 
-    def float_dataset(self):
+        # After normalize, then weighting all the dataset for each criterion
+        self.weighting_product()
+
+        # Getting the ideal best and worst for each criterion
+        res_ideal_worst, res_ideal_best = self.calc_ideal_best_worst()
+
+        # Result from calculating ideal best and worst,then use for calculate Euclidean Distance
+        distance_worst, distance_best = self.euclidean_distance(
+            ideal_worst=res_ideal_worst,
+            ideal_best=res_ideal_best
+        )
+
+        # After calculating the Euclidean distance, The final step is calculating score for each
+        # alternative from distance that we are got it before
+        self.performance_score(distance_best, distance_worst)
+
+        # Getting the rank from final score
+        ranks = np.argsort(np.argsort(-self.score)) + 1
+
+        return self.score, ranks
+
+    def float_dataset(self) -> np.ndarray[Any, np.dtype]:
         b = []
+
         for i in self.dataset:
             try:
                 ix = []
@@ -32,49 +58,51 @@ class Topsis:
                 ix = float(i)
                 pass
             b.append(ix)
+
         b = np.array(b)
+
         return b
 
-    def normalize(self):
-        raw = np.empty(shape=(self.total_alternative, self.total_criteria), dtype=np.float64)
-
+    def normalize(self) -> None:
         for j in range(self.total_criteria):
             sq = np.sqrt(sum(self.matrix[:, j] ** 2))
             sq = 1 if sq == 0 else sq
 
             for i in range(self.total_alternative):
-                raw[i, j] = self.matrix[i, j] / sq
+                self.matrix[i, j] = self.matrix[i, j] / sq
 
-        return raw
+    def weighting_product(self) -> None:
+        self.matrix = self.matrix * self.weight
 
-    def weight_product(self, matrix):
-        return matrix * self.weight
-
-    def calc_ideal_best_worst(self, matrix):
+    def calc_ideal_best_worst(self):
         ideal_worst = []
         ideal_best = []
+
         for i in range(self.total_criteria):
             if self.criterion_type[i] == 1:
-                ideal_worst.append(min(matrix[:, i]))
-                ideal_best.append(max(matrix[:, i]))
+                ideal_worst.append(min(self.matrix[:, i]))
+                ideal_best.append(max(self.matrix[:, i]))
             else:
-                ideal_worst.append(max(matrix[:, i]))
-                ideal_best.append(min(matrix[:, i]))
+                ideal_worst.append(max(self.matrix[:, i]))
+                ideal_best.append(min(self.matrix[:, i]))
+
         return ideal_worst, ideal_best
 
-    def euclidean_distance(self, matrix, ideal_worst, ideal_best):
-        diw = (matrix - ideal_worst) ** 2
-        dib = (matrix - ideal_best) ** 2
+    def euclidean_distance(self, ideal_worst, ideal_best):
+        diw = (self.matrix - ideal_worst) ** 2
+        dib = (self.matrix - ideal_best) ** 2
+
         distance_worst = []
         distance_best = []
+
         for i in range(self.total_alternative):
             distance_worst.append(sum(diw[i, :]) ** 0.5)
             distance_best.append(sum(dib[i, :]) ** 0.5)
+
         distance_worst = np.array(distance_worst)
         distance_best = np.array(distance_best)
+
         return distance_worst, distance_best
 
     def performance_score(self, distance_best, distance_worst):
-        score = []
-        score = distance_worst / (distance_best + distance_worst)
-        return score
+        self.score = distance_worst / (distance_best + distance_worst)
