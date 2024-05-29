@@ -3,7 +3,7 @@ from .rules import init_rules
 from libs.fuzzy import Fuzzy
 from libs import Topsis
 from ..database import db
-from ..models import Fuzzy as FuzzyModel
+from ..models import Fuzzy as FuzzyModel, Topsis as TopsisModel, TopsisNormalization, TopsisWeighting, TopsisBestWorst, TopsisEuclideanDistance
 from .utils import *
 import numpy as np
 
@@ -61,7 +61,12 @@ def calculate():
 
     ct = np.array([-1, 1, 1, -1, 1, 1])
 
-    tp = Topsis(dataset=mapped_alternatives, weight=w, criterion_type=ct)
+    tp = Topsis(
+        alternatives=[alternative.get('alternatif') for alternative in alternatives], 
+        dataset=mapped_alternatives, 
+        weight=w, 
+        criterion_type=ct
+    )
     topsis_result, ranks_result = tp.exec()
 
     data = map_topsis_rank(alternatives, topsis_result, ranks_result)
@@ -90,4 +95,25 @@ def get_fuzzy_calculation(alternative):
         "status_code": 200,
         "message": 'Berhasil mendapatkan hasil kalkulasi fuzzy',
         "data": data
+    })
+
+
+@main.route('/topsis', methods=['GET'])
+def get_topsis_calculation():
+    topsis = TopsisModel.query.all()
+    topsis_normalization = TopsisNormalization.query.all()
+    topsis_weighting = TopsisWeighting.query.all()
+    topsis_best_worst = TopsisBestWorst.query.all()
+    topsis_euclidean = TopsisEuclideanDistance.query.all()
+
+    return jsonify({
+        "status_code": 200,
+        "message": "Berhasil mendapatkan hasil kalkulasi Topsis",
+        "data": {
+            "evaluation_matrix": [t.to_dict() for t in topsis],
+            "normalization": [tn.to_dict() for tn in topsis_normalization],
+            "weighting": [tw.to_dict() for tw in topsis_weighting],
+            "best_worst_alternative": [bw.to_dict() for bw in topsis_best_worst],
+            "euclidean": [te.to_dict() for te in topsis_euclidean]
+        }
     })

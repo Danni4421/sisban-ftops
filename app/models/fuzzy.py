@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Float, CHAR
 from ..database import db
-from ..main.rules import RULES_SUMMARY
+# from ..main.rules import RULES_SUMMARY
 
 class Fuzzy(db.Model):
     __tablename__ = "fuzzy"
@@ -24,5 +24,5 @@ class Fuzzy(db.Model):
             'alpha': self.alpha,
             'z_result': self.z_result,
             'a_pred_multiply_z_pred': self.a_pred_multiply_z_pred,
-            'rule': RULES_SUMMARY[self.rule_index]
+            # 'rule': RULES_SUMMARY[self.rule_index]
         }
