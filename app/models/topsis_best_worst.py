@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, Enum
+from sqlalchemy import Column, Integer, Float, Enum, String
 import enum
 from ..database import db
 
@@ -11,6 +11,7 @@ class TopsisBestWorst(db.Model):
     __tablename__ = "topsis_best_worst"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    bansos = Column(Integer, nullable=False)
     status = Column(Enum(BestWorstType), nullable=False)
     bw_kondisi_ekonomi = Column(Float)
     bw_tanggungan = Column(Float)
@@ -22,6 +23,7 @@ class TopsisBestWorst(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
+            'status': self.status.value,
             'bw_kondisi_ekonomi': self.bw_kondisi_ekonomi,
             'bw_tanggungan': self.bw_tanggungan,
             'bw_hutang': self.bw_hutang,

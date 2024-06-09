@@ -4,7 +4,9 @@ from ..database import db
 class Topsis(db.Model):
     __tablename__ = "topsis"
 
-    id = Column(CHAR(16), primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    alternative = Column(CHAR(16))
+    bansos = Column(Integer, nullable=True)
     kondisi_ekonomi = Column(Float)
     tanggungan = Column(Integer)
     hutang = Column(Float)
@@ -16,7 +18,7 @@ class Topsis(db.Model):
 
     def to_dict(self):
         return {
-            'alternative': self.id,
+            'alternative': self.alternative,
             'kondisi_ekonomi': self.kondisi_ekonomi,
             'tanggungan': self.tanggungan,
             'hutang': self.hutang,

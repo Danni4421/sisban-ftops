@@ -17,7 +17,8 @@ def index():
 
 @main.route('/calculate', methods=['POST'])
 def calculate():
-    alternatives = request.get_json()
+    data = request.get_json()   
+    alternatives = data.get('alternatives')
     rules = init_rules()
 
     for alternative in alternatives:
@@ -62,7 +63,8 @@ def calculate():
     ct = np.array([-1, 1, 1, -1, 1, 1])
 
     tp = Topsis(
-        alternatives=[alternative.get('alternatif') for alternative in alternatives], 
+        alternatives=[alternative.get('alternatif') for alternative in alternatives],
+        key=data.get('bansos'),
         dataset=mapped_alternatives, 
         weight=w, 
         criterion_type=ct
@@ -78,8 +80,10 @@ def calculate():
     }), 200
 
 
-@main.route('/fuzzy/<alternative>', methods=['GET'])
-def get_fuzzy_calculation(alternative):
+@main.route('/fuzzy', methods=['POST'])
+def get_fuzzy_calculation():
+    alternative = request.get_json().get('alternative')
+    
     fuzzy_calculations = FuzzyModel.query.filter_by(alternative=alternative).all()
 
     if not fuzzy_calculations:
@@ -94,17 +98,23 @@ def get_fuzzy_calculation(alternative):
     return jsonify({
         "status_code": 200,
         "message": 'Berhasil mendapatkan hasil kalkulasi fuzzy',
-        "data": data
+        "data": {
+            'fuzzy': data,
+            'sum_alpha': sum(dt['alpha'] for dt in data),
+            'sum_alpha_pred_multiply_z_pred': sum(dt['a_pred_multiply_z_pred'] for dt in data)
+        }
     })
 
 
-@main.route('/topsis', methods=['GET'])
+@main.route('/topsis', methods=['POST'])
 def get_topsis_calculation():
-    topsis = TopsisModel.query.all()
-    topsis_normalization = TopsisNormalization.query.all()
-    topsis_weighting = TopsisWeighting.query.all()
+    bansos = request.get_json().get('bansos')
+
+    topsis = TopsisModel.query.filter_by(bansos=bansos).all()
+    topsis_normalization = TopsisNormalization.query.filter_by(bansos=bansos).all()
+    topsis_weighting = TopsisWeighting.query.filter_by(bansos=bansos).all()
     topsis_best_worst = TopsisBestWorst.query.all()
-    topsis_euclidean = TopsisEuclideanDistance.query.all()
+    topsis_euclidean = TopsisEuclideanDistance.query.filter_by(bansos=bansos).all()
 
     return jsonify({
         "status_code": 200,

@@ -2,5 +2,6 @@
 *.pyc
 *.pyo
 *.pyd
+/.docker/**/*.env
 /migrations
 .env
