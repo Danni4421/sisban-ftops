@@ -11,6 +11,7 @@ class TopsisBestWorst(db.Model):
     __tablename__ = "topsis_best_worst"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+    bansos = Column(Integer, nullable=False)
     status = Column(Enum(BestWorstType), nullable=False)
     bw_kondisi_ekonomi = Column(Float)
     bw_tanggungan = Column(Float)

@@ -6,6 +6,7 @@ import numpy as np
 
 class Topsis:
     alternatives: list
+    key: int
     dataset: list[list[int]]
     weight: list[float]
     criterion_type: list[int]
@@ -20,8 +21,9 @@ class Topsis:
     score: list
     ranks: list
 
-    def __init__(self, alternatives, dataset, weight, criterion_type) -> None:
+    def __init__(self, alternatives, key, dataset, weight, criterion_type) -> None:
         self.alternatives = alternatives
+        self.key = key
         self.dataset = dataset
         self.weight = weight
         self.criterion_type = criterion_type
@@ -123,17 +125,19 @@ class Topsis:
             alternative_id = self.alternatives[i]
             
             # Query untuk mencari entri existing
-            topsis_in_db = TopsisModel.query.filter_by(id=alternative_id).first()
-            normalize_alternative = TopsisNormalization.query.filter_by(alternative=alternative_id).first()
-            weight_alternative = TopsisWeighting.query.filter_by(alternative=alternative_id).first()
-            euclidean = TopsisEuclideanDistance.query.filter_by(alternative=alternative_id).first()
+            topsis_in_db = TopsisModel.query.filter_by(alternative=alternative_id, bansos=self.key).first()
+            normalize_alternative = TopsisNormalization.query.filter_by(alternative=alternative_id, bansos=self.key).first()
+            weight_alternative = TopsisWeighting.query.filter_by(alternative=alternative_id, bansos=self.key).first()
+            euclidean = TopsisEuclideanDistance.query.filter_by(alternative=alternative_id, bansos=self.key).first()
             
             if topsis_in_db is None:
                 topsis_in_db = TopsisModel(
-                    id=alternative_id,
+                    alternative=alternative_id,
+                    bansos=self.key
                 )
                 db.session.add(topsis_in_db)
-                
+            
+            topsis_in_db.bansos = self.key
             topsis_in_db.kondisi_ekonomi = float(self.dataset[i][0])
             topsis_in_db.tanggungan = float(self.dataset[i][1])
             topsis_in_db.hutang = float(self.dataset[i][2])
@@ -143,12 +147,19 @@ class Topsis:
             topsis_in_db.preference_value = float(self.score[i])
             topsis_in_db.rank = float(self.ranks[i])
 
+            db.session.commit()
+            
+            topsis = TopsisModel.query.filter_by(alternative=alternative_id,bansos=self.key).first()
+
             if normalize_alternative is None:
                 normalize_alternative = TopsisNormalization(
+                    topsis_id=topsis.id,
                     alternative=alternative_id,
+                    bansos=self.key
                 )
                 db.session.add(normalize_alternative)
 
+            normalize_alternative.bansos = self.key
             normalize_alternative.normalize_kondisi_ekonomi = float(self.normalized_matrix[i][0])
             normalize_alternative.normalize_tanggungan = float(self.normalized_matrix[i][1])
             normalize_alternative.normalize_hutang = float(self.normalized_matrix[i][2])
@@ -158,10 +169,13 @@ class Topsis:
 
             if weight_alternative is None:
                 weight_alternative = TopsisWeighting(
+                    topsis_id=topsis.id,
                     alternative=alternative_id,
+                    bansos=self.key
                 )
                 db.session.add(weight_alternative)
 
+            weight_alternative.bansos = self.key
             weight_alternative.weighted_kondisi_ekonomi = float(self.weighted_matrix[i][0])
             weight_alternative.weighted_tanggungan = float(self.weighted_matrix[i][1])
             weight_alternative.weighted_hutang = float(self.weighted_matrix[i][2])
@@ -171,10 +185,13 @@ class Topsis:
 
             if euclidean is None:
                 euclidean = TopsisEuclideanDistance(
+                    topsis_id=topsis.id,
                     alternative=alternative_id,
+                    bansos=self.key
                 )
                 db.session.add(euclidean)
 
+            euclidean.bansos = self.key
             euclidean.positive_distance = self.distance_best[i]
             euclidean.negative_distance = self.distance_worst[i]
 
@@ -183,9 +200,11 @@ class Topsis:
         if ideal_best is None:
             ideal_best = TopsisBestWorst(
                 status="BEST",
+                bansos=self.key
             )
             db.session.add(ideal_best)
 
+        ideal_best.bansos = self.key
         ideal_best.bw_kondisi_ekonomi = float(self.ideal_best[0])
         ideal_best.bw_tanggungan = float(self.ideal_best[1])
         ideal_best.bw_hutang = float(self.ideal_best[2])
@@ -198,9 +217,11 @@ class Topsis:
         if ideal_worst is None:
             ideal_worst = TopsisBestWorst(
                 status="WORST",
+                bansos=self.key
             )
             db.session.add(ideal_worst)
 
+        ideal_worst.bansos = self.key
         ideal_worst.bw_kondisi_ekonomi = float(self.ideal_worst[0])
         ideal_worst.bw_tanggungan = float(self.ideal_worst[1])
         ideal_worst.bw_hutang = float(self.ideal_worst[2])

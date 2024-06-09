@@ -1,11 +1,13 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey
+from sqlalchemy import Column, Integer, Float, ForeignKey, CHAR
 from ..database import db
 
 class TopsisNormalization(db.Model):
     __tablename__ = "topsis_normalization"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    alternative = Column(ForeignKey("topsis.id"), nullable=False)
+    bansos = Column(Integer, nullable=False)
+    topsis_id = Column(ForeignKey("topsis.id"), nullable=False)
+    alternative = Column(CHAR(16), nullable=False)
     normalize_kondisi_ekonomi = Column(Float)
     normalize_tanggungan = Column(Float)
     normalize_hutang = Column(Float)
@@ -16,6 +18,7 @@ class TopsisNormalization(db.Model):
     def to_dict(self):
         return {
             'id': self.id,
+            'topsis_id': self.topsis_id,
             'alternative': self.alternative,
             'normalize_kondisi_ekonomi': self.normalize_kondisi_ekonomi,
             'normalize_tanggungan': self.normalize_tanggungan,
